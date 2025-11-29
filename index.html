@@ -144,12 +144,13 @@
         }
         .auto-reserva {
             background: #fff3cd;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
             text-align: center;
-            font-size: 1.4em;
-            border: 2px solid #ffc107;
+            font-size: 1.5em;
+            border: 3px solid #ffc107;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
     </style>
 </head>
@@ -158,44 +159,63 @@
 <div class="container">
     <div class="header">
         <h1>Reserva de Proyectores</h1>
-        <p>Escanea tu QR y se reserva automáticamente</p>
+        <p>Escanea tu QR → Reserva automática instantánea</p>
     </div>
 
     <div class="content">
         <div class="stats">
-            <div class="stat"><strong id="ocupados">0</strong> Ocupados</div>
+            <div class="stat"><strong id="ocupados">0</strong> Proyectores Ocupados</div>
             <div class="stat"><strong id="disponibles">8</strong> Disponibles</div>
+            <div class="stat"><strong id="laptops-usadas">0</strong>/3 Laptops</div>
             <div class="stat"><strong id="extensiones-usadas">0</strong>/9 Extensiones</div>
             <div class="stat"><strong id="hdmi-usados">0</strong>/8 HDMI</div>
         </div>
 
-        <!-- Mensaje automático si viene del QR -->
+        <!-- RESERVA AUTOMÁTICA POR QR -->
         <div id="auto-mensaje" class="auto-reserva" style="display:none;">
             Hola <strong id="nombre-auto"></strong><br><br>
             Estamos reservando automáticamente:<br>
             • 1 Proyector disponible<br>
             • 1 Extensión disponible<br>
             • 1 Cable HDMI disponible<br><br>
-            <button class="btn btn-reservar" onclick="confirmarReservaAutomatica()">Confirmar Reserva</button>
+            <button class="btn btn-reservar" style="font-size:1.4em;padding:18px 50px;" onclick="confirmarReservaAutomatica()">
+                Confirmar Reserva
+            </button>
         </div>
 
+        <!-- RESERVA MANUAL COMPLETA -->
         <div class="form-reserva">
-            <h2 style="color:var(--azul);margin-bottom:25px;">Reserva Manual</h2>
+            <h2 style="color:var(--azul);margin-bottom:25px;">Reserva Manual Completa</h2>
             <div class="form-grid">
-                <div class="form-group"><label>Docente</label><input type="text" id="docente"></div>
+                <div class="form-group"><label>Docente</label><input type="text" id="docente" placeholder="Nombre completo"></div>
                 <div class="form-group"><label>Proyector</label><select id="proyector"><option value="">Seleccionar...</option></select></div>
                 <div class="form-group"><label>Extensión</label><select id="extension"><option value="">Seleccionar...</option></select></div>
-                <div class="form-group"><label>HDMI</label><select id="hdmi"><option value="">Seleccionar...</option></select></div>
+                <div class="form-group"><label>Cable HDMI</label><select id="hdmi"><option value="">Seleccionar...</option></select></div>
+                <div class="form-group"><label>Laptop (opcional)</label>
+                    <select id="laptop">
+                        <option value="">Ninguna</option>
+                        <option value="1">Laptop 1</option>
+                        <option value="2">Laptop 2</option>
+                        <option value="3">Laptop 3</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Bocina (opcional)</label><select id="bocina"><option value="">Ninguna</option></select></div>
+                <div class="form-group"><label>Micrófono</label>
+                    <select id="microfono">
+                        <option value="">No</option>
+                        <option value="1">Sí (1 disponible)</option>
+                    </select>
+                </div>
             </div>
-            <button class="btn btn-reservar" onclick="reservarManual()">RESERVAR MANUAL</button>
+            <button class="btn btn-reservar" onclick="reservarManual()">RESERVAR COMPLETA</button>
         </div>
 
-        <h2 style="color:var(--azul);margin:50px 0 25px;">Estado de Proyectores</h2>
+        <h2 style="color:var(--azul);margin:50px 0 25px;">Estado Actual</h2>
         <div class="proyectores-grid" id="grid"></div>
 
         <div class="qr-section">
             <h2>Códigos QR de Docentes</h2>
-            <p>Escanea tu código → Reserva automática instantánea</p>
+            <p>Escanea tu código → Reserva automática en 3 segundos</p>
             <button id="install-button">Instalar App</button>
             <div id="qr-container" style="display:flex;flex-wrap:wrap;gap:30px;justify-content:center;margin-top:30px;"></div>
         </div>
@@ -216,12 +236,10 @@
     let docenteQR = null;
     let deferredPrompt;
 
-    // Service Worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('service-worker.js');
     }
 
-    // PWA Install
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
@@ -236,6 +254,7 @@
     for(let i=1; i<=8; i++) {
         document.getElementById('proyector').innerHTML += `<option value="${i}">Proyector ${i}</option>`;
         document.getElementById('hdmi').innerHTML += `<option value="${i}">HDMI ${i}</option>`;
+        document.getElementById('bocina').innerHTML += `<option value="${i}">Bocina ${i}</option>`;
     }
     for(let i=1; i<=9; i++) {
         const txt = i===9 ? "Extensión Reserva" : `Extensión ${i}`;
@@ -243,12 +262,12 @@
     }
 
     function actualizarEstadisticas() {
-        const proyOcupados = Object.values(reservas).filter(r => r.proyector).length;
-        const hdmiOcupados = Object.values(reservas).filter(r => r.hdmi).length;
-        document.getElementById('ocupados').textContent = proyOcupados;
-        document.getElementById('disponibles').textContent = 8 - proyOcupados;
+        const proy = Object.values(reservas).filter(r => r.proyector).length;
+        document.getElementById('ocupados').textContent = proy;
+        document.getElementById('disponibles').textContent = 8 - proy;
+        document.getElementById('laptops-usadas').textContent = Object.values(reservas).filter(r => r.laptop).length;
         document.getElementById('extensiones-usadas').textContent = Object.values(reservas).filter(r => r.extension).length;
-        document.getElementById('hdmi-usados').textContent = hdmiOcupados;
+        document.getElementById('hdmi-usados').textContent = Object.values(reservas).filter(r => r.hdmi).length;
     }
 
     function mostrarReservas() {
@@ -265,79 +284,86 @@
                     ${r ? `
                         <p><strong>${r.docente}</strong></p>
                         <p>Extensión ${r.extension}${r.extension==9?' (Reserva)':''} • HDMI ${r.hdmi}</p>
-                        <button class="btn" style="background:var(--rojo);color:white;margin-top:15px;" onclick="liberar(${i})">Liberar</button>
-                    ` : '<p style="color:#999;">Disponible</p>'}
+                        ${r.laptop ? `<p>Laptop ${r.laptop}</p>` : ''}
+                        ${r.bocina ? `<p>Bocina ${r.bocina}</p>` : ''}
+                        ${r.microfono ? `<p>Micrófono</p>` : ''}
+                        <button class="btn" style="background:var(--rojo);color:white;margin-top:15px;" onclick="liberar(${i})">Liberar Todo</button>
+                    ` : '<p style="color:#999;">Listo para usar</p>'}
                 </div>
             `;
         }
         actualizarEstadisticas();
     }
 
-    // RESERVA AUTOMÁTICA AL ESCANEAR QR
+    // RESERVA AUTOMÁTICA POR QR
     window.confirmarReservaAutomatica = async () => {
         if (!docenteQR) return;
 
-        const proyDisponible = Array.from({length:8},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.proyector == n));
-        const extDisponible = Array.from({length:9},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.extension == n));
-        const hdmiDisponible = Array.from({length:8},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.hdmi == n));
+        const proy = Array.from({length:8},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.proyector == n));
+        const ext = Array.from({length:9},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.extension == n));
+        const hdmi = Array.from({length:8},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.hdmi == n));
 
-        if (!proyDisponible || !extDisponible || !hdmiDisponible) {
-            alert('No hay recursos disponibles en este momento');
-            return;
-        }
+        if (!proy || !ext || !hdmi) return alert('No hay recursos disponibles');
 
         await push(reservasRef, {
             docente: docenteQR,
-            proyector: proyDisponible,
-            extension: extDisponible,
-            hdmi: hdmiDisponible,
+            proyector: proy,
+            extension: ext,
+            hdmi: hdmi,
+            laptop: null,
+            bocina: null,
+            microfono: null,
             fecha: new Date().toISOString()
         });
 
-        alert(`¡RESERVADO!\nProyector ${proyDisponible}\nExtensión ${extDisponible}\nHDMI ${hdmiDisponible}\n\n¡Que tengas una excelente clase, ${docenteQR}!`);
+        alert(`RESERVADO AUTOMÁTICAMENTE\n\nProyector ${proy}\nExtensión ${ext}\nHDMI ${hdmi}\n\n¡Excelente clase, ${docenteQR}!`);
         document.getElementById('auto-mensaje').style.display = 'none';
     };
 
-    // Reserva manual
+    // RESERVA MANUAL COMPLETA
     window.reservarManual = async () => {
         const docente = document.getElementById('docente').value.trim();
         const proyector = document.getElementById('proyector').value;
         const extension = document.getElementById('extension').value;
         const hdmi = document.getElementById('hdmi').value;
+        const laptop = document.getElementById('laptop').value || null;
+        const bocina = document.getElementById('bocina').value || null;
+        const microfono = document.getElementById('microfono').value || null;
 
-        if (!docente || !proyector || !extension || !hdmi) return alert('Complete todos los campos');
+        if (!docente || !proyector || !extension || !hdmi) return alert('Complete los campos obligatorios');
 
-        if (Object.values(reservas).some(r => r.proyector == proyector || r.extension == extension || r.hdmi == hdmi)) {
-            return alert('Ya está ocupado uno de los recursos');
-        }
+        const ocupado = Object.values(reservas).some(r =>
+            r.proyector == proyector || r.extension == extension || r.hdmi == hdmi ||
+            (laptop && r.laptop == laptop) || (bocina && r.bocina == bocina) || (microfono && r.microfono)
+        );
+        if (ocupado) return alert('Uno de los recursos ya está ocupado');
 
-        await push(reservasRef, { docente, proyector, extension, hdmi, fecha: new Date().toISOString() });
+        await push(reservasRef, { docente, proyector, extension, hdmi, laptop, bocina, microfono, fecha: new Date().toISOString() });
         await set(ref(db, 'docentes/' + btoa(docente)), { nombre: docente });
-        alert('¡Reserva manual exitosa!');
+        alert('¡Reserva manual completada con éxito!');
         document.getElementById('docente').value = '';
     };
 
     window.liberar = async (p) => {
         const entrada = Object.entries(reservas).find(([id, r]) => r.proyector == p);
-        if (entrada && confirm('¿Liberar este proyector?')) {
+        if (entrada && confirm(`¿Liberar todo de ${entrada[1].docente}?`)) {
             await set(ref(db, 'reservas/' + entrada[0]), null);
         }
     };
 
-    // Cargar datos
     onValue(reservasRef, s => { reservas = s.val() || {}; mostrarReservas(); });
     onValue(docentesRef, s => {
         docentes = s.val() || {};
         document.getElementById('qr-container').innerHTML = Object.values(docentes).map(d => `
-            <div style="text-align:center;background:white;padding:20px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);">
-                <strong style="font-size:1.3em;">${d.nombre}</strong><br>
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(location.href.split('?')[0] + '?qr=' + encodeURIComponent(d.nombre))}">
-                <p style="margin-top:10px;color:#666;">Escanear = Reserva automática</p>
+            <div style="text-align:center;background:white;padding:25px;border-radius:15px;box-shadow:0 8px 30px rgba(0,0,0,0.15);">
+                <strong style="font-size:1.4em;">${d.nombre}</strong><br>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(location.href.split('?')[0] + '?qr=' + encodeURIComponent(d.nombre))}">
+                <p style="margin-top:12px;color:#666;font-weight:bold;">Reserva automática</p>
             </div>
         `).join('');
     });
 
-    // DETECTAR QR Y RESERVA AUTOMÁTICA
+    // Detectar QR
     const params = new URLSearchParams(location.search);
     const qrName = params.get('qr');
     if (qrName) {
