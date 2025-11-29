@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reserva de Proyectores y Equipos - Completo</title>
+    <meta name="theme-color" content="#003087">
+    <title>Reserva Proyectores</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="https://img.icons8.com/color/96/000000/projector.png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/000000/projector.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
-        :root {
-            --azul: #003087;
-            --verde: #28a745;
-            --rojo: #dc3545;
-            --gris: #f8f9fa;
-            --naranja: #fd7e14;
-        }
+        :root { --azul: #003087; --verde: #28a745; --rojo: #dc3545; --gris: #f8f9fa; }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -110,14 +108,8 @@
             border: 3px solid #e0e0e0;
             transition: all 0.4s;
         }
-        .card.ocupado {
-            border-color: var(--verde);
-            background: linear-gradient(135deg, #e8f5e8, #d4edda);
-        }
-        .card.disponible {
-            border-color: #ffc107;
-            background: linear-gradient(135deg, #fff9e6, #fff3cd);
-        }
+        .card.ocupado { border-color: var(--verde); background: linear-gradient(135deg, #e8f5e8, #d4edda); }
+        .card.disponible { border-color: #ffc107; background: linear-gradient(135deg, #fff9e6, #fff3cd); }
         .card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.18); }
 
         .card-header {
@@ -126,17 +118,8 @@
             align-items: center;
             margin-bottom: 18px;
         }
-        .card-numero {
-            font-size: 2.2em;
-            font-weight: bold;
-            color: var(--azul);
-        }
-        .status {
-            padding: 10px 18px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 0.95em;
-        }
+        .card-numero { font-size: 2.2em; font-weight: bold; color: var(--azul); }
+        .status { padding: 10px 18px; border-radius: 25px; font-weight: bold; font-size: 0.95em; }
         .ocupado .status { background: var(--verde); color: white; }
         .disponible .status { background: #ffc107; color: #333; }
 
@@ -148,19 +131,30 @@
             border-radius: 20px;
             border: 3px dashed var(--azul);
         }
+        #install-button {
+            background: var(--azul);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 20px 0;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>Reserva de Proyectores y Equipos</h1>
-        <p>8 Proyectores • 3 Laptops • 8 Bocinas • 9 Extensiones • 1 Micrófono</p>
+        <h1>Reserva de Proyectores</h1>
+        <p>8 Proyectores • 3 Laptops • 9 Extensiones • 8 Bocinas • 1 Micrófono</p>
     </div>
 
     <div class="content">
         <div class="stats">
-            <div class="stat"><strong id="ocupados">0</strong> Proyectores Ocupados</div>
+            <div class="stat"><strong id="ocupados">0</strong> Ocupados</div>
             <div class="stat"><strong id="disponibles">8</strong> Disponibles</div>
             <div class="stat"><strong id="laptops-usadas">0</strong>/3 Laptops</div>
             <div class="stat"><strong id="extensiones-usadas">0</strong>/9 Extensiones</div>
@@ -168,56 +162,25 @@
         </div>
 
         <div class="form-reserva">
-            <h2 style="color:var(--azul);margin-bottom:25px;">Nueva Reserva Completa</h2>
+            <h2 style="color:var(--azul);margin-bottom:25px;">Nueva Reserva</h2>
             <div class="form-grid">
-                <div class="form-group">
-                    <label>Docente</label>
-                    <input type="text" id="docente" placeholder="Nombre completo" required>
-                </div>
-                <div class="form-group">
-                    <label>Proyector</label>
-                    <select id="proyector" required>
-                        <option value="">Seleccionar...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Extensión Eléctrica</label>
-                    <select id="extension" required>
-                        <option value="">Seleccionar...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Laptop (opcional)</label>
-                    <select id="laptop">
-                        <option value="">Ninguna</option>
-                        <option value="1">Laptop 1</option>
-                        <option value="2">Laptop 2</option>
-                        <option value="3">Laptop 3</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Bocina (opcional)</label>
-                    <select id="bocina">
-                        <option value="">Ninguna</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Micrófono</label>
-                    <select id="microfono">
-                        <option value="">No</option>
-                        <option value="1">Sí (1 disponible)</option>
-                    </select>
-                </div>
+                <div class="form-group"><label>Docente</label><input type="text" id="docente" required></div>
+                <div class="form-group"><label>Proyector</label><select id="proyector" required><option value="">Seleccionar...</option></select></div>
+                <div class="form-group"><label>Extensión</label><select id="extension" required><option value="">Seleccionar...</option></select></div>
+                <div class="form-group"><label>Laptop</label><select id="laptop"><option value="">Ninguna</option><option value="1">Laptop 1</option><option value="2">Laptop 2</option><option value="3">Laptop 3</option></select></div>
+                <div class="form-group"><label>Bocina</label><select id="bocina"><option value="">Ninguna</option></select></div>
+                <div class="form-group"><label>Micrófono</label><select id="microfono"><option value="">No</option><option value="1">Sí</option></select></div>
             </div>
-            <button class="btn btn-reservar" onclick="reservar()">RESERVAR COMPLETA</button>
+            <button class="btn btn-reservar" onclick="reservar()">RESERVAR</button>
         </div>
 
-        <h2 style="color:var(--azul);margin:50px 0 25px;">Estado Actual de Proyectores</h2>
+        <h2 style="color:var(--azul);margin:50px 0 25px;">Estado de Proyectores</h2>
         <div class="proyectores-grid" id="grid"></div>
 
         <div class="qr-section">
             <h2>Códigos QR para Docentes</h2>
-            <p>Escanea tu código y reserva automáticamente</p>
+            <p>Escanea y reserva automáticamente</p>
+            <button id="install-button">Instalar App en tu celular</button>
             <div id="qr-container" style="display:flex;flex-wrap:wrap;gap:30px;justify-content:center;margin-top:30px;"></div>
         </div>
     </div>
@@ -227,28 +190,48 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js';
     import { getDatabase, ref, onValue, set, push } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js';
 
-    const app = initializeApp({ 
-        databaseURL: 'https://reservaproyectores-default-rtdb.firebaseio.com/' 
-    });
+    const app = initializeApp({ databaseURL: 'https://reservaproyectores-default-rtdb.firebaseio.com/' });
     const db = getDatabase(app);
     const reservasRef = ref(db, 'reservas');
     const docentesRef = ref(db, 'docentes');
 
     let reservas = {};
     let docentes = {};
+    let deferredPrompt;
+
+    // Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(() => console.log('Service Worker registrado'))
+            .catch(err => console.log('Error SW:', err));
+    }
+
+    // Botón de instalación PWA
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('install-button').style.display = 'block';
+    });
+
+    document.getElementById('install-button').addEventListener('click', () => {
+        document.getElementById('install-button').style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+            if (choice.outcome === 'accepted') {
+                console.log('Usuario instaló la app');
+            }
+            deferredPrompt = null;
+        });
+    });
 
     // Llenar selectores
-    const proyectorSelect = document.getElementById('proyector');
-    const extensionSelect = document.getElementById('extension');
-    const bocinaSelect = document.getElementById('bocina');
-
     for(let i=1; i<=8; i++) {
-        proyectorSelect.innerHTML += `<option value="${i}">Proyector ${i}</option>`;
-        bocinaSelect.innerHTML += `<option value="${i}">Bocina ${i}</option>`;
+        document.getElementById('proyector').innerHTML += `<option value="${i}">Proyector ${i}</option>`;
+        document.getElementById('bocina').innerHTML += `<option value="${i}">Bocina ${i}</option>`;
     }
     for(let i=1; i<=9; i++) {
-        const texto = i === 9 ? "Extensión de Reserva" : `Extensión ${i}`;
-        extensionSelect.innerHTML += `<option value="${i}">${texto}</option>`;
+        const txt = i===9 ? "Extensión de Reserva" : `Extensión ${i}`;
+        document.getElementById('extension').innerHTML += `<option value="${i}">${txt}</option>`;
     }
 
     function actualizarEstadisticas() {
@@ -264,26 +247,23 @@
         const grid = document.getElementById('grid');
         grid.innerHTML = '';
         for(let i=1; i<=8; i++) {
-            const reserva = Object.values(reservas).find(r => r.proyector == i);
-            const card = document.createElement('div');
-            card.className = `card ${reserva ? 'ocupado' : 'disponible'}`;
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="card-numero">Proyector ${i}</div>
-                    <div class="status">${reserva ? 'OCUPADO' : 'DISPONIBLE'}</div>
+            const r = Object.values(reservas).find(x => x.proyector == i);
+            grid.innerHTML += `
+                <div class="card ${r ? 'ocupado' : 'disponible'}">
+                    <div class="card-header">
+                        <div class="card-numero">Proyector ${i}</div>
+                        <div class="status">${r ? 'OCUPADO' : 'DISPONIBLE'}</div>
+                    </div>
+                    ${r ? `
+                        <p><strong>${r.docente}</strong></p>
+                        <p>Extensión ${r.extension}${r.extension == 9 ? ' (Reserva)' : ''}</p>
+                        ${r.laptop ? `<p>Laptop ${r.laptop}</p>` : ''}
+                        ${r.bocina ? `<p>Bocina ${r.bocina}</p>` : ''}
+                        ${r.microfono ? `<p>Micrófono</p>` : ''}
+                        <button class="btn" style="background:var(--rojo);color:white;margin-top:15px;" onclick="liberar(${i})">Liberar</button>
+                    ` : '<p style="color:#999;">Listo para usar</p>'}
                 </div>
-                ${reserva ? `
-                    <p><strong>Docente:</strong> ${reserva.docente}</p>
-                    <p>Extensión ${reserva.extension}${reserva.extension == 9 ? ' (Reserva)' : ''}</p>
-                    ${reserva.laptop ? `<p>Laptop ${reserva.laptop}</p>` : ''}
-                    ${reserva.bocina ? `<p>Bocina ${reserva.bocina}</p>` : ''}
-                    ${reserva.microfono ? `<p>Micrófono</p>` : ''}
-                    <button class="btn" style="background:var(--rojo);color:white;margin-top:18px;" onclick="liberar(${i})">
-                        Liberar Todo
-                    </button>
-                ` : '<p style="color:#999;font-style:italic;">Listo para usar</p>'}
             `;
-            grid.appendChild(card);
         }
         actualizarEstadisticas();
     }
@@ -296,61 +276,44 @@
         const bocina = document.getElementById('bocina').value || null;
         const microfono = document.getElementById('microfono').value || null;
 
-        if (!docente || !proyector || !extension) {
-            alert('Complete docente, proyector y extensión');
-            return;
-        }
+        if (!docente || !proyector || !extension) return alert('Faltan datos');
 
-        // Validaciones de disponibilidad
-        if (Object.values(reservas).some(r => r.proyector == proyector)) return alert('Proyector ya reservado');
-        if (Object.values(reservas).some(r => r.extension == extension)) return alert('Esta extensión ya está en uso');
-        if (laptop && Object.values(reservas).some(r => r.laptop == laptop)) return alert('Laptop ya asignada');
-        if (bocina && Object.values(reservas).some(r => r.bocina == bocina)) return alert('Bocina ya asignada');
-        if (microfono && Object.values(reservas).some(r => r.microfono)) return alert('Micrófono ya en uso');
+        if (Object.values(reservas).some(r => r.proyector == proyector)) return alert('Proyector ocupado');
+        if (Object.values(reservas).some(r => r.extension == extension)) return alert('Extensión ocupada');
+        if (laptop && Object.values(reservas).some(r => r.laptop == laptop)) return alert('Laptop ocupada');
+        if (bocina && Object.values(reservas).some(r => r.bocina == bocina)) return alert('Bocina ocupada');
+        if (microfono && Object.values(reservas).some(r => r.microfono)) return alert('Micrófono en uso');
 
-        const nueva = { docente, proyector, extension, laptop, bocina, microfono, fecha: new Date().toISOString() };
-        await push(reservasRef, nueva);
-
-        // Registrar docente
+        await push(reservasRef, { docente, proyector, extension, laptop, bocina, microfono, fecha: new Date().toISOString() });
         await set(ref(db, 'docentes/' + btoa(docente)), { nombre: docente });
-
-        alert(`¡RESERVA COMPLETA!\nProyector ${proyector} + Extensión ${extension} para ${docente}`);
+        alert('¡Reservado con éxito!');
         document.getElementById('docente').value = '';
     };
 
-    window.liberar = async (proyector) => {
-        const entrada = Object.entries(reservas).find(([id, r]) => r.proyector == proyector);
-        if (entrada && confirm(`¿Liberar todo lo de ${entrada[1].docente}?`)) {
+    window.liberar = async (p) => {
+        const entrada = Object.entries(reservas).find(([id, r]) => r.proyector == p);
+        if (entrada && confirm('¿Liberar este proyector?')) {
             await set(ref(db, 'reservas/' + entrada[0]), null);
         }
     };
 
-    // Cargar reservas
-    onValue(reservasRef, (snap) => {
-        reservas = snap.val() || {};
-        mostrarReservas();
-    });
-
-    // Cargar y mostrar QR de docentes
-    onValue(docentesRef, (snap) => {
-        docentes = snap.val() || {};
+    onValue(reservasRef, s => { reservas = s.val() || {}; mostrarReservas(); });
+    onValue(docentesRef, s => {
+        docentes = s.val() || {};
         const cont = document.getElementById('qr-container');
-        cont.innerHTML = Object.values(docentes).length === 0 
-            ? '<p style="color:#666;">Aún no hay docentes registrados</p>'
-            : Object.values(docentes).map(d => `
-                <div style="text-align:center;background:white;padding:20px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);">
-                    <strong style="font-size:1.3em;display:block;margin-bottom:10px;">${d.nombre}</strong>
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(location.href.split('?')[0] + '?docente=' + encodeURIComponent(d.nombre))}" alt="QR">
-                    <p style="margin-top:10px;color:#666;font-size:0.9em;">Escanea para reservar</p>
-                </div>
-            `).join('');
+        cont.innerHTML = Object.values(docentes).map(d => `
+            <div style="text-align:center;background:white;padding:20px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);">
+                <strong style="font-size:1.3em;">${d.nombre}</strong><br>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(location.href.split('?')[0] + '?docente=' + encodeURIComponent(d.nombre))}">
+                <p style="margin-top:10px;color:#666;">Escanea para reservar</p>
+            </div>
+        `).join('');
     });
 
-    // Auto-llenar docente desde QR
-    const params = new URLSearchParams(location.search);
-    if (params.get('docente')) {
-        document.getElementById('docente').value = decodeURIComponent(params.get('docente'));
-        alert(`¡Hola ${decodeURIComponent(params.get('docente'))}! Completa tu reserva`);
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get('docente')) {
+        document.getElementById('docente').value = decodeURIComponent(urlParams.get('docente'));
+        alert(`¡Hola ${decodeURIComponent(urlParams.get('docente'))}! Completa tu reserva`);
     }
 </script>
 </body>
