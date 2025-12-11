@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#003087">
-    <title>Reserva Proyectores</title>
+    <title>Reserva Equipo Audiovisual</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="https://img.icons8.com/color/96/000000/projector.png">
-    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/000000/projector.png">
+    <link rel="icon" href="https://img.icons8.com/color/96/projector.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <style>
-        :root { --azul: #003087; --verde: #28a745; --rojo: #dc3545; --gris: #f8f9fa; }
+        :root { --azul: #003087; --verde: #28a745; --rojo: #dc3545; --gris: #f8f9fa; --amarillo: #ffc107; }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -21,6 +20,7 @@
         .container {
             max-width: 1450px;
             margin: 20px auto;
+            background: white;
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -35,6 +35,7 @@
         .header h1 { font-size: 3.2em; margin-bottom: 10px; }
         .header p { font-size: 1.4em; opacity: 0.9; }
         .content { padding: 40px; }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -50,11 +51,12 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         .stat strong { display: block; font-size: 2.6em; color: var(--azul); margin-bottom: 8px; }
+
         .form-reserva {
             background: #f0f8ff;
             padding: 35px;
             border-radius: 18px;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
             border-left: 8px solid var(--azul);
         }
         .form-grid {
@@ -90,20 +92,21 @@
             color: white;
         }
         .btn-reservar:hover { background: #218838; transform: translateY(-4px); }
-        .btn-liberar {
-            background: var(--rojo);
-            color: white;
-            padding: 10px 20px;
-            font-size: 1em;
-            margin-top: 10px;
-            border-radius: 10px;
+
+        .section-title {
+            color: var(--azul);
+            font-size: 2.4em;
+            margin: 60px 0 30px;
+            text-align: center;
+            font-weight: bold;
         }
-        .proyectores-grid {
+
+        .recursos-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
             gap: 28px;
-            margin-top: 30px;
         }
+
         .card {
             background: white;
             border-radius: 18px;
@@ -112,22 +115,52 @@
             border: 3px solid #e0e0e0;
             transition: all 0.4s;
         }
-        .card.ocupado { border-color: var(--verde); background: linear-gradient(135deg, #e8f5e8, #d4edda); }
-        .card.disponible { border-color: #ffc107; background: linear-gradient(135deg, #fff9e6, #fff3cd); }
+        .card.ocupado {
+            border-color: var(--verde);
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+        }
+        .card.disponible {
+            border-color: var(--amarillo);
+            background: linear-gradient(135deg, #fff9e6, #fff3cd);
+        }
         .card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.18); }
+
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 18px;
         }
-        .card-numero { font-size: 2.2em; font-weight: bold; color: var(--azul); }
-        .status { padding: 10px 18px; border-radius: 25px; font-weight: bold; font-size: 0.95em; }
+        .card-title {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: var(--azul);
+        }
+        .status {
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
         .ocupado .status { background: var(--verde); color: white; }
-        .disponible .status { background: #ffc107; color: #333; }
+        .disponible .status { background: var(--amarillo); color: #333; }
+
+        .btn-liberar {
+            background: var(--rojo);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+            width: 100%;
+        }
+        .btn-liberar:hover { background: #c03221; }
+
         .qr-section {
             text-align: center;
-            margin: 60px 0;
+            margin: 80px 0 40px;
             padding: 50px;
             background: linear-gradient(135deg, #f8f9fa, #e9ecef);
             border-radius: 20px;
@@ -144,195 +177,177 @@
             margin: 20px 0;
             display: none;
         }
-        .auto-reserva {
-            background: #fff3cd;
-            padding: 25px;
-            border-radius: 15px;
-            margin: 30px 0;
-            text-align: center;
-            font-size: 1.5em;
-            border: 3px solid #ffc107;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>Reserva de Proyectores</h1>
-        <p>Escanea tu QR → Reserva automática instantánea</p>
+        <h1>Reserva Equipo Audiovisual</h1>
+        <p>Proyectores • Extensiones • HDMI • Bocinas • Laptops • Micrófono</p>
     </div>
+
     <div class="content">
         <div class="stats">
-            <div class="stat"><strong id="ocupados">0</strong> Proyectores Ocupados</div>
-            <div class="stat"><strong id="disponibles">8</strong> Disponibles</div>
-            <div class="stat"><strong id="laptops-usadas">0</strong>/3 Laptops</div>
-            <div class="stat"><strong id="extensiones-usadas">0</strong>/9 Extensiones</div>
-            <div class="stat"><strong id="hdmi-usados">0</strong>/8 HDMI</div>
+            <div class="stat"><strong id="proy-ocupados">0</strong>/8 Proyectores</div>
+            <div class="stat"><strong id="ext-ocupadas">0</strong>/9 Extensiones</div>
+            <div class="stat"><strong id="hdmi-ocupados">0</strong>/8 HDMI</div>
+            <div class="stat"><strong id="bocinas-ocupadas">0</strong>/8 Bocinas</div>
+            <div class="stat"><strong id="laptops-ocupadas">0</strong>/3 Laptops</div>
+            <div class="stat"><strong id="microfono-ocupado">0</strong>/1 Micrófono</div>
         </div>
 
-        <div id="auto-mensaje" class="auto-reserva" style="display:none;">
-            Hola <strong id="nombre-auto"></strong><br><br>
-            Estamos reservando automáticamente:<br>
-            • 1 Proyector disponible<br>
-            • 1 Extensión disponible<br>
-            • 1 Cable HDMI disponible<br><br>
-            <button class="btn btn-reservar" style="font-size:1.4em;padding:18px 50px;" onclick="confirmarReservaAutomatica()">
-                Confirmar Reserva
-            </button>
-        </div>
-
+        <!-- RESERVA MANUAL FLEXIBLE -->
         <div class="form-reserva">
-            <h2 style="color:var(--azul);margin-bottom:25px;">Reserva Manual Completa</h2>
+            <h2 style="color:var(--azul);margin-bottom:25px;">Reserva Manual</h2>
             <div class="form-grid">
-                <div class="form-group"><label>Docente</label><input type="text" id="docente" placeholder="Nombre completo"></div>
+                <div class="form-group"><label>Docente *</label><input type="text" id="docente" placeholder="Nombre completo"></div>
                 <div class="form-group"><label>Proyector</label><select id="proyector"><option value="">Ninguno</option></select></div>
                 <div class="form-group"><label>Extensión</label><select id="extension"><option value="">Ninguna</option></select></div>
                 <div class="form-group"><label>Cable HDMI</label><select id="hdmi"><option value="">Ninguno</option></select></div>
-                <div class="form-group"><label>Laptop (opcional)</label>
-                    <select id="laptop">
-                        <option value="">Ninguna</option>
-                        <option value="1">Laptop 1</option>
-                        <option value="2">Laptop 2</option>
-                        <option value="3">Laptop 3</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>Bocina (opcional)</label><select id="bocina"><option value="">Ninguna</option></select></div>
-                <div class="form-group"><label>Micrófono</label>
-                    <select id="microfono">
-                        <option value="">No</option>
-                        <option value="1">Sí (1 disponible)</option>
-                    </select>
-                </div>
+                <div class="form-group"><label>Laptop</label><select id="laptop"><option value="">Ninguna</option><option value="1">Laptop 1</option><option value="2">Laptop 2</option><option value="3">Laptop 3</option></select></div>
+                <div class="form-group"><label>Bocina</label><select id="bocina"><option value="">Ninguna</option></select></div>
+                <div class="form-group"><label>Micrófono</label><select id="microfono"><option value="">No</option><option value="1">Sí</option></select></div>
             </div>
             <button class="btn btn-reservar" onclick="reservarManual()">RESERVAR SELECCIONADO</button>
         </div>
 
-        <h2 style="color:var(--azul);margin:50px 0 25px;">Estado Actual de Proyectores</h2>
-        <div class="proyectores-grid" id="grid"></div>
+        <!-- CONTENEDORES INDIVIDUALES -->
+        <h2 class="section-title">Proyectores</h2>
+        <div class="recursos-grid" id="grid-proyectores"></div>
 
-        <div class="qr-section">
-            <h2>Códigos QR de Docentes</h2>
-            <p>Escanea tu código → Reserva automática en 3 segundos</p>
-            <button id="install-button">Instalar App</button>
-            <div id="qr-container" style="display:flex;flex-wrap:wrap;gap:30px;justify-content:center;margin-top:30px;"></div>
-        </div>
+        <h2 class="section-title">Extensiones Eléctricas</h2>
+        <div class="recursos-grid" id="grid-extensiones"></div>
+
+        <h2 class="section-title">Cables HDMI</h2>
+        <div class="recursos-grid" id="grid-hdmi"></div>
+
+        <h2 class="section-title">Bocinas</h2>
+        <div class="recursos-grid" id="grid-bocinas"></div>
+
+        <h2 class="section-title">Laptops</h2>
+        <div class="recursos-grid" id="grid-laptops"></div>
+
+        <h2 class="section-title">Micrófono</h2>
+        <div class="recursos-grid" id="grid-microfono"></div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js';
-    import { getDatabase, ref, onValue, set, push } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js';
+    import { getDatabase, ref, onValue, set, push, remove } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js';
     
     const app = initializeApp({ databaseURL: 'https://reservaproyectores-default-rtdb.firebaseio.com/' });
     const db = getDatabase(app);
     const reservasRef = ref(db, 'reservas');
-    const docentesRef = ref(db, 'docentes');
-    
+
     let reservas = {};
-    let docentes = {};
-    let docenteQR = null;
-    let deferredPrompt;
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js');
-    }
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('install-button').style.display = 'block';
-    });
-
-    document.getElementById('install-button').addEventListener('click', () => {
-        document.getElementById('install-button').style.display = 'none';
-        deferredPrompt.prompt();
-    });
 
     // Llenar selects
     for(let i=1; i<=8; i++) {
-        document.getElementById('proyector').innerHTML += `<option value="${i}">Proyector ${i}</option>`;
-        document.getElementById('hdmi').innerHTML += `<option value="${i}">HDMI ${i}</option>`;
-        document.getElementById('bocina').innerHTML += `<option value="${i}">Bocina ${i}</option>`;
+        ['proyector','hdmi','bocina'].forEach(id => {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = id === 'proyector' ? `Proyector ${i}` : `${id.charAt(0).toUpperCase() + id.slice(1)} ${i}`;
+            document.getElementById(id).appendChild(opt);
+        });
     }
     for(let i=1; i<=9; i++) {
-        const txt = i===9 ? "Extensión Reserva" : `Extensión ${i}`;
-        document.getElementById('extension').innerHTML += `<option value="${i}">${txt}</option>`;
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = i===9 ? "Extensión Reserva" : `Extensión ${i}`;
+        document.getElementById('extension').appendChild(opt);
     }
 
     function actualizarEstadisticas() {
-        const proy = Object.values(reservas).filter(r => r.proyector).length;
-        document.getElementById('ocupados').textContent = proy;
-        document.getElementById('disponibles').textContent = 8 - proy;
-        document.getElementById('laptops-usadas').textContent = Object.values(reservas).filter(r => r.laptop).length;
-        document.getElementById('extensiones-usadas').textContent = Object.values(reservas).filter(r => r.extension).length;
-        document.getElementById('hdmi-usados').textContent = Object.values(reservas).filter(r => r.hdmi).length;
+        document.getElementById('proy-ocupados').textContent = Object.values(reservas).filter(r => r.proyector).length;
+        document.getElementById('ext-ocupadas').textContent = Object.values(reservas).filter(r => r.extension).length;
+        document.getElementById('hdmi-ocupados').textContent = Object.values(reservas).filter(r => r.hdmi).length;
+        document.getElementById('bocinas-ocupadas').textContent = Object.values(reservas).filter(r => r.bocina).length;
+        document.getElementById('laptops-ocupadas').textContent = Object.values(reservas).filter(r => r.laptop).length;
+        document.getElementById('microfono-ocupado').textContent = Object.values(reservas).filter(r => r.microfono).length;
     }
 
-    function mostrarReservas() {
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        for(let i=1; i<=8; i++) {
-            const reserva = Object.values(reservas).find(x => x.proyector == i);
-            const idReserva = reserva ? Object.keys(reservas).find(k => reservas[k] === reserva) : null;
+    function crearTarjeta(tipo, num, reserva = null) {
+        const nombres = {
+            proyector: `Proyector ${num}`,
+            extension: num == 9 ? "Extensión Reserva" : `Extensión ${num}`,
+            hdmi: `HDMI ${num}`,
+            bocina: `Bocina ${num}`,
+            laptop: `Laptop ${num}`,
+            microfono: "Micrófono"
+        };
+        const titulo = nombres[tipo];
 
-            grid.innerHTML += `
-                <div class="card ${reserva ? 'ocupado' : 'disponible'}">
-                    <div class="card-header">
-                        <div class="card-numero">Proyector ${i}</div>
-                        <div class="status">${reserva ? 'OCUPADO' : 'DISPONIBLE'}</div>
-                    </div>
-                    ${reserva ? `
-                        <p><strong>${reserva.docente}</strong></p>
-                        ${reserva.extension ? `<p>Extensión ${reserva.extension}${reserva.extension==9 ? ' (Reserva)' : ''}</p>` : ''}
-                        ${reserva.hdmi ? `<p>HDMI ${reserva.hdmi}</p>` : ''}
-                        ${reserva.laptop ? `<p>Laptop ${reserva.laptop}</p>` : ''}
-                        ${reserva.bocina ? `<p>Bocina ${reserva.bocina}</p>` : ''}
-                        ${reserva.microfono ? `<p>Micrófono</p>` : ''}
-                        <button class="btn btn-liberar" onclick="liberarReserva('${idReserva}')">
-                            Liberar este recurso
-                        </button>
-                    ` : '<p style="color:#999;">Listo para usar</p>'}
+        const id = reserva ? Object.keys(reservas).find(k => reservas[k] === reserva) : null;
+
+        return `
+            <div class="card ${reserva ? 'ocupado' : 'disponible'}">
+                <div class="card-header">
+                    <div class="card-title">${titulo}</div>
+                    <div class="status">${reserva ? 'OCUPADO' : 'DISPONIBLE'}</div>
                 </div>
-            `;
+                ${reserva ? `
+                    <p><strong>${reserva.docente}</strong></p>
+                    <p>Reservado: ${new Date(reserva.fecha).toLocaleString('es-MX')}</p>
+                    <button class="btn-liberar" onclick="liberar('${id}')">
+                        Liberar ${titulo}
+                    </button>
+                ` : '<p style="color:#888; margin-top:20px;">Listo para usar</p>'}
+            </div>
+        `;
+    }
+
+    function mostrarRecursos() {
+        // Proyectores
+        let html = '';
+        for(let i=1; i<=8; i++) {
+            const r = Object.values(reservas).find(x => x.proyector == i);
+            html += crearTarjeta('proyector', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
         }
+        document.getElementById('grid-proyectores').innerHTML = html;
+
+        // Extensiones
+        html = '';
+        for(let i=1; i<=9; i++) {
+            const r = Object.values(reservas).find(x => x.extension == i);
+            html += crearTarjeta('extension', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+        }
+        document.getElementById('grid-extensiones').innerHTML = html;
+
+        // HDMI
+        html = '';
+        for(let i=1; i<=8; i++) {
+            const r = Object.values(reservas).find(x => x.hdmi == i);
+            html += crearTarjeta('hdmi', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+        }
+        document.getElementById('grid-hdmi').innerHTML = html;
+
+        // Bocinas
+        html = '';
+        for(let i=1; i<=8; i++) {
+            const r = Object.values(reservas).find(x => x.bocina == i);
+            html += crearTarjeta('bocina', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+        }
+        document.getElementById('grid-bocinas').innerHTML = html;
+
+        // Laptops
+        html = '';
+        for(let i=1; i<=3; i++) {
+            const r = Object.values(reservas).find(x => x.laptop == i);
+            html += crearTarjeta('laptop', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+        }
+        document.getElementById('grid-laptops').innerHTML = html;
+
+        // Micrófono
+        const r = Object.values(reservas).find(x => x.microfono);
+        document.getElementById('grid-microfono').innerHTML = crearTarjeta('microfono', 1, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+
         actualizarEstadisticas();
     }
 
-    // NUEVA FUNCIÓN: Liberar cualquier reserva individualmente
-    window.liberarReserva = async (id) => {
-        if (!id) return;
-        const reserva = reservas[id];
-        if (confirm(`¿Liberar todos los recursos de ${reserva.docente}?`)) {
-            await set(ref(db, 'reservas/' + id), null);
-        }
-    };
-
-    // RESERVA AUTOMÁTICA
-    window.confirmarReservaAutomatica = async () => {
-        if (!docenteQR) return;
-        const proy = Array.from({length:8},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.proyector == n));
-        const ext = Array.from({length:9},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.extension == n));
-        const hdmi = Array.from({length:8},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.hdmi == n));
-        if (!proy || !ext || !hdmi) return alert('No hay recursos disponibles');
-        await push(reservasRef, {
-            docente: docenteQR,
-            proyector: proy,
-            extension: ext,
-            hdmi: hdmi,
-            laptop: null,
-            bocina: null,
-            microfono: null,
-            fecha: new Date().toISOString()
-        });
-        alert(`RESERVADO AUTOMÁTICAMENTE\n\nProyector ${proy}\nExtensión ${ext}\nHDMI ${hdmi}\n\n¡Excelente clase, ${docenteQR}!`);
-        document.getElementById('auto-mensaje').style.display = 'none';
-    };
-
-    // RESERVA MANUAL FLEXIBLE
     window.reservarManual = async () => {
         const docente = document.getElementById('docente').value.trim();
-        if (!docente) return alert('Ingresa el nombre del docente');
+        if (!docente) return alert('Nombre del docente es obligatorio');
 
         const proyector = document.getElementById('proyector').value || null;
         const extension = document.getElementById('extension').value || null;
@@ -345,7 +360,7 @@
             return alert('Selecciona al menos un recurso');
         }
 
-        const ocupado = Object.values(reservas).some(r => 
+        const ocupado = Object.values(reservas).some(r =>
             (proyector && r.proyector == proyector) ||
             (extension && r.extension == extension) ||
             (hdmi && r.hdmi == hdmi) ||
@@ -362,35 +377,21 @@
             fecha: new Date().toISOString()
         });
 
-        await set(ref(db, 'docentes/' + btoa(docente)), { nombre: docente });
         alert('¡Reserva exitosa!');
         document.getElementById('docente').value = '';
         document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
     };
 
-    onValue(reservasRef, s => { 
-        reservas = s.val() || {}; 
-        mostrarReservas(); 
-    });
+    window.liberar = async (id) => {
+        if (confirm('¿Liberar este recurso?')) {
+            await remove(ref(db, 'reservas/' + id));
+        }
+    };
 
-    onValue(docentesRef, s => {
-        docentes = s.val() || {};
-        document.getElementById('qr-container').innerHTML = Object.values(docentes).map(d => `
-            <div style="text-align:center;background:white;padding:25px;border-radius:15px;box-shadow:0 8px 30px rgba(0,0,0,0.15);">
-                <strong style="font-size:1.4em;">${d.nombre}</strong><br>
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(location.href.split('?')[0] + '?qr=' + encodeURIComponent(d.nombre))}">
-                <p style="margin-top:12px;color:#666;font-weight:bold;">Reserva automática</p>
-            </div>
-        `).join('');
+    onValue(reservasRef, (snap) => {
+        reservas = snap.val() || {};
+        mostrarRecursos();
     });
-
-    const params = new URLSearchParams(location.search);
-    const qrName = params.get('qr');
-    if (qrName) {
-        docenteQR = decodeURIComponent(qrName);
-        document.getElementById('nombre-auto').textContent = docenteQR;
-        document.getElementById('auto-mensaje').style.display = 'block';
-    }
 </script>
 </body>
 </html>
