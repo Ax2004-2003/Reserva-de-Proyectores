@@ -90,6 +90,14 @@
             color: white;
         }
         .btn-reservar:hover { background: #218838; transform: translateY(-4px); }
+        .btn-liberar {
+            background: var(--rojo);
+            color: white;
+            padding: 10px 20px;
+            font-size: 1em;
+            margin-top: 10px;
+            border-radius: 10px;
+        }
         .proyectores-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -163,7 +171,6 @@
             <div class="stat"><strong id="hdmi-usados">0</strong>/8 HDMI</div>
         </div>
 
-        <!-- RESERVA AUTOMÁTICA POR QR (igual que antes) -->
         <div id="auto-mensaje" class="auto-reserva" style="display:none;">
             Hola <strong id="nombre-auto"></strong><br><br>
             Estamos reservando automáticamente:<br>
@@ -175,7 +182,6 @@
             </button>
         </div>
 
-        <!-- RESERVA MANUAL FLEXIBLE (AHORA SÍ PUEDES ELEGIR SOLO LO QUE QUIERAS) -->
         <div class="form-reserva">
             <h2 style="color:var(--azul);margin-bottom:25px;">Reserva Manual Completa</h2>
             <div class="form-grid">
@@ -243,7 +249,7 @@
         deferredPrompt.prompt();
     });
 
-    // Llenar selects (con "Ninguno" por defecto)
+    // Llenar selects
     for(let i=1; i<=8; i++) {
         document.getElementById('proyector').innerHTML += `<option value="${i}">Proyector ${i}</option>`;
         document.getElementById('hdmi').innerHTML += `<option value="${i}">HDMI ${i}</option>`;
@@ -267,20 +273,25 @@
         const grid = document.getElementById('grid');
         grid.innerHTML = '';
         for(let i=1; i<=8; i++) {
-            const r = Object.values(reservas).find(x => x.proyector == i);
+            const reserva = Object.values(reservas).find(x => x.proyector == i);
+            const idReserva = reserva ? Object.keys(reservas).find(k => reservas[k] === reserva) : null;
+
             grid.innerHTML += `
-                <div class="card ${r ? 'ocupado' : 'disponible'}">
+                <div class="card ${reserva ? 'ocupado' : 'disponible'}">
                     <div class="card-header">
                         <div class="card-numero">Proyector ${i}</div>
-                        <div class="status">${r ? 'OCUPADO' : 'DISPONIBLE'}</div>
+                        <div class="status">${reserva ? 'OCUPADO' : 'DISPONIBLE'}</div>
                     </div>
-                    ${r ? `
-                        <p><strong>${r.docente}</strong></p>
-                        <p>Extensión ${r.extension || '—'}${r.extension==9?' (Reserva)':''} • HDMI ${r.hdmi || '—'}</p>
-                        ${r.laptop ? `<p>Laptop ${r.laptop}</p>` : ''}
-                        ${r.bocina ? `<p>Bocina ${r.bocina}</p>` : ''}
-                        ${r.microfono ? `<p>Micrófono</p>` : ''}
-                        <button class="btn" style="background:var(--rojo);color:white;margin-top:15px;" onclick="liberar(${i})">Liberar Todo</button>
+                    ${reserva ? `
+                        <p><strong>${reserva.docente}</strong></p>
+                        ${reserva.extension ? `<p>Extensión ${reserva.extension}${reserva.extension==9 ? ' (Reserva)' : ''}</p>` : ''}
+                        ${reserva.hdmi ? `<p>HDMI ${reserva.hdmi}</p>` : ''}
+                        ${reserva.laptop ? `<p>Laptop ${reserva.laptop}</p>` : ''}
+                        ${reserva.bocina ? `<p>Bocina ${reserva.bocina}</p>` : ''}
+                        ${reserva.microfono ? `<p>Micrófono</p>` : ''}
+                        <button class="btn btn-liberar" onclick="liberarReserva('${idReserva}')">
+                            Liberar este recurso
+                        </button>
                     ` : '<p style="color:#999;">Listo para usar</p>'}
                 </div>
             `;
@@ -288,7 +299,16 @@
         actualizarEstadisticas();
     }
 
-    // RESERVA AUTOMÁTICA (sin cambios)
+    // NUEVA FUNCIÓN: Liberar cualquier reserva individualmente
+    window.liberarReserva = async (id) => {
+        if (!id) return;
+        const reserva = reservas[id];
+        if (confirm(`¿Liberar todos los recursos de ${reserva.docente}?`)) {
+            await set(ref(db, 'reservas/' + id), null);
+        }
+    };
+
+    // RESERVA AUTOMÁTICA
     window.confirmarReservaAutomatica = async () => {
         if (!docenteQR) return;
         const proy = Array.from({length:8},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.proyector == n));
@@ -309,7 +329,7 @@
         document.getElementById('auto-mensaje').style.display = 'none';
     };
 
-    // RESERVA MANUAL FLEXIBLE (AQUÍ ESTÁ EL CAMBIO QUE QUERÍAS)
+    // RESERVA MANUAL FLEXIBLE
     window.reservarManual = async () => {
         const docente = document.getElementById('docente').value.trim();
         if (!docente) return alert('Ingresa el nombre del docente');
@@ -321,12 +341,10 @@
         const bocina = document.getElementById('bocina').value || null;
         const microfono = document.getElementById('microfono').value || null;
 
-        // Ahora solo necesitas al menos 1 recurso
         if (!proyector && !extension && !hdmi && !laptop && !bocina && !microfono) {
-            return alert('Selecciona al menos un recurso para reservar');
+            return alert('Selecciona al menos un recurso');
         }
 
-        // Verificar que no estén disponibles
         const ocupado = Object.values(reservas).some(r => 
             (proyector && r.proyector == proyector) ||
             (extension && r.extension == extension) ||
@@ -340,26 +358,14 @@
 
         await push(reservasRef, {
             docente,
-            proyector,
-            extension,
-            hdmi,
-            laptop,
-            bocina,
-            microfono,
+            proyector, extension, hdmi, laptop, bocina, microfono,
             fecha: new Date().toISOString()
         });
 
         await set(ref(db, 'docentes/' + btoa(docente)), { nombre: docente });
-        alert('¡Reserva realizada con éxito!');
+        alert('¡Reserva exitosa!');
         document.getElementById('docente').value = '';
         document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-    };
-
-    window.liberar = async (p) => {
-        const entrada = Object.entries(reservas).find(([id, r]) => r.proyector == p);
-        if (entrada && confirm(`¿Liberar todo de ${entrada[1].docente}?`)) {
-            await set(ref(db, 'reservas/' + entrada[0]), null);
-        }
     };
 
     onValue(reservasRef, s => { 
@@ -378,7 +384,6 @@
         `).join('');
     });
 
-    // Detectar QR
     const params = new URLSearchParams(location.search);
     const qrName = params.get('qr');
     if (qrName) {
