@@ -175,11 +175,15 @@
             </button>
         </div>
 
-        <!-- RESERVA MANUAL FLEXIBLE -->
+        <!-- RESERVA MANUAL FLEXIBLE (A -->
         <div class="form-reserva">
-            <h2 style="color:var(--azul);margin-bottom:25px;">Reserva Manual (Selecciona solo lo que necesitas)</h2>
+            <h2 style="color:var(--azul);margin-bottom:25px;">Reserva Manual Flexible</h2>
+            <p style="color:#555;margin-bottom:20px;font-size:1.1em;">
+                Selecciona <strong>solo lo que necesites</strong>. Solo debes elegir <strong>al menos uno</strong> de los 5 recursos.
+            </p>
             <div class="form-grid">
-                <div class="form-group"><label>Docente</label><input type="text" id="docente" placeholder="Nombre completo (obligatorio)"></div>
+                <div class="form-group"><label>Docente</label><input type="text" id="docente" placeholder="Nombre completo"></div>
+                
                 <div class="form-group"><label>Proyector</label><select id="proyector"><option value="">Ninguno</option></select></div>
                 <div class="form-group"><label>Extensión</label><select id="extension"><option value="">Ninguna</option></select></div>
                 <div class="form-group"><label>Cable HDMI</label><select id="hdmi"><option value="">Ninguno</option></select></div>
@@ -199,7 +203,7 @@
                     </select>
                 </div>
             </div>
-            <button class="btn btn-reservar" onclick="reservarManual()">RESERVAR SELECCIONADO</button>
+            <button class="btn btn-reservar" onclick="reservarManualFlexible()">RESERVAR SOLO LO SELECCIONADO</button>
         </div>
 
         <h2 style="color:var(--azul);margin:50px 0 25px;">Estado Actual</h2>
@@ -217,12 +221,12 @@
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js';
     import { getDatabase, ref, onValue, set, push } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js';
-    
+
     const app = initializeApp({ databaseURL: 'https://reservaproyectores-default-rtdb.firebaseio.com/' });
     const db = getDatabase(app);
     const reservasRef = ref(db, 'reservas');
     const docentesRef = ref(db, 'docentes');
-    
+
     let reservas = {};
     let docentes = {};
     let docenteQR = null;
@@ -243,11 +247,11 @@
         deferredPrompt.prompt();
     });
 
-    // Llenar selectores (con opción "Ninguno" por defecto)
+    // Llenar selectores (con opción "Ninguno" ya incluida)
     for(let i=1; i<=8; i++) {
-        document.getElementById('proyector').innerHTML += `<option value="${i}">Proyector ${i}</option>`;
-        document.getElementById('hdmi').innerHTML += `<option value="${i}">HDMI ${i}</option>`;
-        document.getElementById('bocina').innerHTML += `<option value="${i}">Bocina ${i}</option>`;
+        ['proyector', 'hdmi', 'bocina'].forEach(id => {
+            document.getElementById(id).innerHTML += `<option value="${i}">${id === 'proyector' ? 'Proyector' : id === 'hdmi' ? 'HDMI' : 'Bocina'} ${i}</option>`;
+        });
     }
     for(let i=1; i<=9; i++) {
         const txt = i===9 ? "Extensión Reserva" : `Extensión ${i}`;
@@ -309,35 +313,35 @@
         document.getElementById('auto-mensaje').style.display = 'none';
     };
 
-    // RESERVA MANUAL FLEXIBLE (AQUÍ ESTÁ EL CAMBIO PRINCIPAL)
-    window.reservarManual = async () => {
+    // NUEVA FUNCIÓN: RESERVA FLEXIBLE (solo lo que elijas)
+    window.reservarManualFlexible = async () => {
         const docente = document.getElementById('docente').value.trim();
-        if (!docente) return alert('El nombre del docente es obligatorio');
+        if (!docente) return alert('Escribe el nombre del docente');
 
         const proyector = document.getElementById('proyector').value || null;
         const extension = document.getElementById('extension').value || null;
         const hdmi = document.getElementById('hdmi').value || null;
         const laptop = document.getElementById('laptop').value || null;
         const bocina = document.getElementById('bocina').value || null;
-        const microfono = document.getElementById('microfono').value || null;
+        const microfono = document.getElementById('microfono').value === '1' ? '1' : null;
 
-        // Validar que al menos uno de los recursos principales esté seleccionado
+        // Verificar que al menos uno esté seleccionado
         if (!proyector && !extension && !hdmi && !laptop && !bocina) {
             return alert('Selecciona al menos un recurso (proyector, extensión, HDMI, laptop o bocina)');
         }
 
-        // Verificar que no estén ocupados los recursos seleccionados
-        const ocupado = Object.values(reservas).some(r => 
-            (proyector && r.proyector == proyector) ||
-            (extension && r.extension == extension) ||
-            (hdmi && r.hdmi == hdmi) ||
-            (laptop && r.laptop == laptop) ||
-            (bocina && r.bocina == bocina) ||
-            (microfono && r.microfono)
-        );
+        // Verificar conflictos
+        const conflicto = Object.values(reservas).some(r => {
+            return (proyector && r.proyector == proyector) ||
+                   (extension && r.extension == extension) ||
+                   (hdmi && r.hdmi == hdmi) ||
+                   (laptop && r.laptop == laptop) ||
+                   (bocina && r.bocina == bocina);
+        });
 
-        if (ocupado) return alert('Uno o más recursos ya están reservados');
+        if (conflicto) return alert('Uno de los recursos seleccionados ya está ocupado');
 
+        // Guardar en Firebase
         await push(reservasRef, {
             docente,
             proyector,
@@ -350,9 +354,16 @@
         });
 
         await set(ref(db, 'docentes/' + btoa(docente)), { nombre: docente });
-        alert('¡Reserva realizada con éxito!');
+        alert('¡Reserva realizada con éxito!\n\nSolo se reservó lo que seleccionaste.');
+        
+        // Limpiar formulario
         document.getElementById('docente').value = '';
-        document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+        document.getElementById('proyector').value = '';
+        document.getElementById('extension').value = '';
+        document.getElementById('hdmi').value = '';
+        document.getElementById('laptop').value = '';
+        document.getElementById('bocina').value = '';
+        document.getElementById('microfono').value = '';
     };
 
     window.liberar = async (p) => {
@@ -362,6 +373,7 @@
         }
     };
 
+    // Escuchar cambios en tiempo real
     onValue(reservasRef, s => { reservas = s.val() || {}; mostrarReservas(); });
     onValue(docentesRef, s => {
         docentes = s.val() || {};
@@ -374,7 +386,7 @@
         `).join('');
     });
 
-    // Detectar QR
+    // Detectar QR en URL
     const params = new URLSearchParams(location.search);
     const qrName = params.get('qr');
     if (qrName) {
