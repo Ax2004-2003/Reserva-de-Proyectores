@@ -21,7 +21,6 @@
             max-width: 1450px;
             margin: 20px auto;
             background: white;
-            background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
@@ -177,6 +176,16 @@
             margin: 20px 0;
             display: none;
         }
+        .auto-reserva {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+            font-size: 1.5em;
+            border: 3px solid #ffc107;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
     </style>
 </head>
 <body>
@@ -194,6 +203,18 @@
             <div class="stat"><strong id="bocinas-ocupadas">0</strong>/8 Bocinas</div>
             <div class="stat"><strong id="laptops-ocupadas">0</strong>/3 Laptops</div>
             <div class="stat"><strong id="microfono-ocupado">0</strong>/1 Micrófono</div>
+        </div>
+
+        <!-- RESERVA AUTOMÁTICA POR QR -->
+        <div id="auto-mensaje" class="auto-reserva" style="display:none;">
+            Hola <strong id="nombre-auto"></strong><br><br>
+            Estamos reservando automáticamente:<br>
+            • 1 Proyector disponible<br>
+            • 1 Extensión disponible<br>
+            • 1 Cable HDMI disponible<br><br>
+            <button class="btn btn-reservar" style="font-size:1.4em;padding:18px 50px;" onclick="confirmarReservaAutomatica()">
+                Confirmar Reserva
+            </button>
         </div>
 
         <!-- RESERVA MANUAL FLEXIBLE -->
@@ -229,6 +250,14 @@
 
         <h2 class="section-title">Micrófono</h2>
         <div class="recursos-grid" id="grid-microfono"></div>
+
+        <!-- SECCIÓN QR -->
+        <div class="qr-section">
+            <h2>Códigos QR de Docentes</h2>
+            <p>Escanea tu código → Reserva automática instantánea</p>
+            <button id="install-button">Instalar App</button>
+            <div id="qr-container" style="display:flex;flex-wrap:wrap;gap:30px;justify-content:center;margin-top:30px;"></div>
+        </div>
     </div>
 </div>
 
@@ -239,15 +268,33 @@
     const app = initializeApp({ databaseURL: 'https://reservaproyectores-default-rtdb.firebaseio.com/' });
     const db = getDatabase(app);
     const reservasRef = ref(db, 'reservas');
+    const docentesRef = ref(db, 'docentes');
 
     let reservas = {};
+    let docentes = {};
+    let docenteQR = null;
+    let deferredPrompt;
+
+    // PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js');
+    }
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('install-button').style.display = 'block';
+    });
+    document.getElementById('install-button').addEventListener('click', () => {
+        document.getElementById('install-button').style.display = 'none';
+        deferredPrompt.prompt();
+    });
 
     // Llenar selects
     for(let i=1; i<=8; i++) {
         ['proyector','hdmi','bocina'].forEach(id => {
             const opt = document.createElement('option');
             opt.value = i;
-            opt.textContent = id === 'proyector' ? `Proyector ${i}` : `${id.charAt(0).toUpperCase() + id.slice(1)} ${i}`;
+            opt.textContent = id === 'proyector' ? `Proyector ${i}` : id === 'hdmi' ? `HDMI ${i}` : `Bocina ${i}`;
             document.getElementById(id).appendChild(opt);
         });
     }
@@ -277,8 +324,7 @@
             microfono: "Micrófono"
         };
         const titulo = nombres[tipo];
-
-        const id = reserva ? Object.keys(reservas).find(k => reservas[k] === reserva) : null;
+        const idReserva = reserva ? Object.keys(reservas).find(k => reservas[k] === reserva) : null;
 
         return `
             <div class="card ${reserva ? 'ocupado' : 'disponible'}">
@@ -288,9 +334,9 @@
                 </div>
                 ${reserva ? `
                     <p><strong>${reserva.docente}</strong></p>
-                    <p>Reservado: ${new Date(reserva.fecha).toLocaleString('es-MX')}</p>
-                    <button class="btn-liberar" onclick="liberar('${id}')">
-                        Liberar ${titulo}
+                    <p>${new Date(reserva.fecha).toLocaleString('es-MX')}</p>
+                    <button class="btn-liberar" onclick="liberarRecurso('${idReserva}')">
+                        Liberar
                     </button>
                 ` : '<p style="color:#888; margin-top:20px;">Listo para usar</p>'}
             </div>
@@ -302,7 +348,7 @@
         let html = '';
         for(let i=1; i<=8; i++) {
             const r = Object.values(reservas).find(x => x.proyector == i);
-            html += crearTarjeta('proyector', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+            html += crearTarjeta('proyector', i, r);
         }
         document.getElementById('grid-proyectores').innerHTML = html;
 
@@ -310,7 +356,7 @@
         html = '';
         for(let i=1; i<=9; i++) {
             const r = Object.values(reservas).find(x => x.extension == i);
-            html += crearTarjeta('extension', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+            html += crearTarjeta('extension', i, r);
         }
         document.getElementById('grid-extensiones').innerHTML = html;
 
@@ -318,7 +364,7 @@
         html = '';
         for(let i=1; i<=8; i++) {
             const r = Object.values(reservas).find(x => x.hdmi == i);
-            html += crearTarjeta('hdmi', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+            html += crearTarjeta('hdmi', i, r);
         }
         document.getElementById('grid-hdmi').innerHTML = html;
 
@@ -326,7 +372,7 @@
         html = '';
         for(let i=1; i<=8; i++) {
             const r = Object.values(reservas).find(x => x.bocina == i);
-            html += crearTarjeta('bocina', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+            html += crearTarjeta('bocina', i, r);
         }
         document.getElementById('grid-bocinas').innerHTML = html;
 
@@ -334,17 +380,18 @@
         html = '';
         for(let i=1; i<=3; i++) {
             const r = Object.values(reservas).find(x => x.laptop == i);
-            html += crearTarjeta('laptop', i, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+            html += crearTarjeta('laptop', i, r);
         }
         document.getElementById('grid-laptops').innerHTML = html;
 
         // Micrófono
         const r = Object.values(reservas).find(x => x.microfono);
-        document.getElementById('grid-microfono').innerHTML = crearTarjeta('microfono', 1, r ? {...r, id: Object.keys(reservas).find(k=>reservas[k]===r)} : null);
+        document.getElementById('grid-microfono').innerHTML = crearTarjeta('microfono', 1, r);
 
         actualizarEstadisticas();
     }
 
+    // RESERVA MANUAL
     window.reservarManual = async () => {
         const docente = document.getElementById('docente').value.trim();
         if (!docente) return alert('Nombre del docente es obligatorio');
@@ -377,21 +424,72 @@
             fecha: new Date().toISOString()
         });
 
+        await set(ref(db, 'docentes/' + btoa(docente)), { nombre: docente });
         alert('¡Reserva exitosa!');
         document.getElementById('docente').value = '';
         document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
     };
 
-    window.liberar = async (id) => {
-        if (confirm('¿Liberar este recurso?')) {
+    // LIBERAR CUALQUIER RECURSO
+    window.liberarRecurso = async (id) => {
+        if (!id) return;
+        const reserva = reservas[id];
+        if (confirm(`¿Liberar todos los recursos de ${reserva.docente}?`)) {
             await remove(ref(db, 'reservas/' + id));
         }
     };
 
+    // RESERVA AUTOMÁTICA POR QR
+    window.confirmarReservaAutomatica = async () => {
+        if (!docenteQR) return;
+        const proy = Array.from({length:8},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.proyector == n));
+        const ext = Array.from({length:9},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.extension == n));
+        const hdmi = Array.from({length:8},(_,i)=>i+1).find(n => !Object.values(reservas).some(r => r.hdmi == n));
+        if (!proy || !ext || !hdmi) return alert('No hay recursos disponibles');
+        await push(reservasRef, {
+            docente: docenteQR,
+            proyector: proy,
+            extension: ext,
+            hdmi: hdmi,
+            laptop: null,
+            bocina: null,
+            microfono: null,
+            fecha: new Date().toISOString()
+        });
+        alert(`RESERVADO AUTOMÁTICAMENTE\n\nProyector ${proy}\nExtensión ${ext}\nHDMI ${hdmi}\n\n¡Excelente clase, ${docenteQR}!`);
+        document.getElementById('auto-mensaje').style.display = 'none';
+    };
+
+    // CARGAR DATOS EN TIEMPO REAL
     onValue(reservasRef, (snap) => {
         reservas = snap.val() || {};
         mostrarRecursos();
     });
+
+    onValue(docentesRef, (snap) => {
+        docentes = snap.val() || {};
+        const container = document.getElementById('qr-container');
+        container.innerHTML = '';
+        Object.values(docentes).forEach(d => {
+            const div = document.createElement('div');
+            div.style = "text-align:center;background:white;padding:25px;border-radius:15px;box-shadow:0 8px 30px rgba(0,0,0,0.15);";
+            div.innerHTML = `
+                <strong style="font-size:1.4em;">${d.nombre}</strong><br>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=${encodeURIComponent(location.href.split('?')[0] + '?qr=' + encodeURIComponent(d.nombre))}">
+                <p style="margin-top:12px;color:#666;font-weight:bold;">Reserva automática</p>
+            `;
+            container.appendChild(div);
+        });
+    });
+
+    // Detectar QR en URL
+    const params = new URLSearchParams(location.search);
+    const qrName = params.get('qr');
+    if (qrName) {
+        docenteQR = decodeURIComponent(qrName);
+        document.getElementById('nombre-auto').textContent = docenteQR;
+        document.getElementById('auto-mensaje').style.display = 'block';
+    }
 </script>
 </body>
 </html>
